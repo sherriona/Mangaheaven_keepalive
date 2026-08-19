@@ -1,0 +1,32 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Ping Supabase database
+        run: |
+          curl -s "https://vxusdzckmakivxuamhxu.supabase.co/rest/v1/library?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+
+      - name: Update heartbeat marker
+        run: |
+          mkdir -p .github
+          date -u > .github/last-heartbeat.txt
+
+      - name: Commit heartbeat marker
+        run: |
+          git config user.name "keepalive-bot"
+          git config user.email "actions@github.com"
+          git add .github/last-heartbeat.txt
+          git commit -m "chore: keepalive ping" || echo "Nothing to commit"
+          git push

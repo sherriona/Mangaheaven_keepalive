@@ -2,7 +2,7 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    - cron: '0 3 */3 * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,11 +12,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Ping Supabase database
+      - name: Write-ping Supabase database
         run: |
-          curl -s "https://vxusdzckmakivxuamhxu.supabase.co/rest/v1/library?select=id&limit=1" \
+          curl -sf -X PATCH "https://vxusdzckmakivxuamhxu.supabase.co/rest/v1/library?id=eq.-999999999" \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "{\"updated_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
 
       - name: Update heartbeat marker
         run: |
